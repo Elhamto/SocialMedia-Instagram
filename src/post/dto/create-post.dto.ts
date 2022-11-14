@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { UserDocument } from 'src/user/schema/user.schema';
 
-export class CreateUserDto {
+export class CreatePostDto {
   //   @Validate(IsUnique, { message: 'Isnot unique name' })
   @IsNotEmpty()
   owner: UserDocument;

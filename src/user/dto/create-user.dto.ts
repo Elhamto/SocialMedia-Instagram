@@ -9,7 +9,7 @@ import {
   MaxLength,
   // Validate,
 } from 'class-validator';
-import { UserDocument } from '../schema/user.schema';
+import { UserDto } from "./user.dto";
 
 export class CreateUserDto {
   //   @Validate(IsUnique, { message: 'Isnot unique name' })
@@ -23,11 +23,11 @@ export class CreateUserDto {
 
   @IsEmail()
   @IsOptional()
-  email: string;
+  email?: string;
 
   @IsString()
   @IsOptional()
-  phoneNumber: string;
+  phoneNumber?: string;
 
   @IsString()
   @MaxLength(30)
@@ -43,21 +43,21 @@ export class CreateUserDto {
 
   @IsArray()
   @IsOptional()
-  followers: UserDocument;
+  followers: UserDto[];
 
   @IsArray()
   @IsOptional()
-  followings: UserDocument;
+  followings: UserDto[];
 
   @IsArray()
   @IsOptional()
-  closeUsers: UserDocument;
+  closeUsers: UserDto[];
 
   @IsArray()
   @IsOptional()
-  hideUsers: UserDocument;
+  hideUsers: UserDto[];
 
   @IsArray()
   @IsOptional()
-  blockUsers: UserDocument;
+  blockUsers: UserDto[];
 }

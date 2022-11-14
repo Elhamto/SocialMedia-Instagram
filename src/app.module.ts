@@ -6,11 +6,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PostModule } from './post/post.module';
 import { StoryModule } from './story/story.module';
 import { MessageModule } from './message/message.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    UserModule,
+    ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URI),
+    UserModule,
     PostModule,
     StoryModule,
     MessageModule,

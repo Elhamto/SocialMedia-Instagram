@@ -7,7 +7,7 @@ import {
   IsString,
   Validate,
 } from 'class-validator';
-import { User, UserDocument } from '../schema/user.schema';
+import { UserDocument } from '../schema/user.schema';
 
 export class CreateUserDto {
   //   @Validate(IsUnique, { message: 'Isnot unique name' })

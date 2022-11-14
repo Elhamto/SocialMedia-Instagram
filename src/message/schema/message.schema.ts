@@ -1,9 +1,25 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import * as mongoose from 'mongoose';
+import { User } from 'src/user/schema/user.schema';
 
-export const MessageSchema = new Schema({
-  from: { type: Schema.Types.ObjectId, ref: 'User' },
-  to: { type: Schema.Types.ObjectId, ref: 'User' },
-  content: String,
-  date: Date.now,
-});
+export type MessageDocument = mongoose.HydratedDocument<Message>;
+
+@Schema()
+export class Message {
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  from: User;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  to: User;
+
+  @Prop()
+  content: string;
+
+  @Prop()
+  date: Date;
+
+  @Prop()
+  liked: boolean;
+}
+
+export const MessageSchema = SchemaFactory.createForClass(Message);

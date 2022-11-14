@@ -7,7 +7,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  Validate,
+  // Validate,
 } from 'class-validator';
 import { UserDocument } from '../schema/user.schema';
 

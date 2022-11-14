@@ -17,14 +17,26 @@ export class UserService {
   }
 
   findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find({
+      username: 'elham'
+    }, {
+      age: 1,
+      phoneNumber: 1
+    }).exec();
   }
 
   findOne(id: number) {
     return this.userModel.findById(id).exec();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  addFollower(id: number, updateUserDto: UpdateUserDto) {
+    this.userModel.updateOne({
+      username: updateUserDto.username
+    }, {
+      $push: {
+        followers: '2121'
+      }
+    })
     return `This action updates a #${id} user`;
   }
 

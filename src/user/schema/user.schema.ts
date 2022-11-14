@@ -8,8 +8,14 @@ export class User {
   @Prop({ unique: true, required: true })
   username: string;
 
-  @Prop()
+  @Prop({ required: true })
   password: string;
+
+  @Prop()
+  email: string;
+
+  @Prop()
+  phoneNumber: string;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
   followers: User[];
@@ -33,7 +39,7 @@ export class User {
   blockUsers: User[];
 
   @Prop({ default: false })
-  private: boolean;
+  visiblity: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

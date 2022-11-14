@@ -17,6 +17,15 @@ export class User {
   @Prop()
   phoneNumber: string;
 
+  @Prop()
+  gender: string;
+
+  @Prop()
+  age: number;
+
+  @Prop({ default: false })
+  visiblity: boolean;
+
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
   followers: User[];
 
@@ -37,9 +46,6 @@ export class User {
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
   blockUsers: User[];
-
-  @Prop({ default: false })
-  visiblity: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

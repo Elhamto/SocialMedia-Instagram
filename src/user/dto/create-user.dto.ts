@@ -3,8 +3,10 @@ import {
   IsBoolean,
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
   Validate,
 } from 'class-validator';
 import { UserDocument } from '../schema/user.schema';
@@ -27,6 +29,18 @@ export class CreateUserDto {
   @IsOptional()
   phoneNumber: string;
 
+  @IsString()
+  @MaxLength(30)
+  @IsOptional()
+  gender: string;
+
+  @IsNumber()
+  @IsOptional()
+  age: number;
+
+  @IsBoolean()
+  visiblity: boolean;
+
   @IsArray()
   @IsOptional()
   followers: UserDocument;
@@ -46,7 +60,4 @@ export class CreateUserDto {
   @IsArray()
   @IsOptional()
   blockUsers: UserDocument;
-
-  @IsBoolean()
-  visiblity: boolean;
 }

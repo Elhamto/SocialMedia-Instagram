@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { StoryService } from './story.service';
 import { CreateStoryDto } from './dto/create-story.dto';
-import { UpdateStoryDto } from './dto/update-story.dto';
+import { UpdateStoryDto } from './dto/story.dto';
 
 @Controller('story')
 export class StoryController {

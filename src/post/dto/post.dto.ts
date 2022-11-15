@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
 import {
   IsArray,
   IsNotEmpty,
@@ -6,11 +7,10 @@ import {
   IsString,
   IsUrl,
 } from 'class-validator';
-import { UserDocument } from 'src/user/schema/user.schema';
 
 export class CreatePostDto {
   @IsNotEmpty()
-  owner: UserDocument;
+  owner: CreatePostDto;
 
   @IsUrl() // @IsString()
   @IsNotEmpty()
@@ -18,16 +18,18 @@ export class CreatePostDto {
 
   @IsString()
   @IsOptional()
-  caption: string;
+  caption?: string;
 
   @IsOptional()
   comments: Array<any>;
 
   @IsArray()
   @IsOptional()
-  likes: UserDocument;
+  likes?: CreatePostDto;
 
   @IsNumber()
   @IsOptional()
-  viewCount: number;
+  viewCount?: number;
 }
+
+export class UpdatePostDto extends PartialType(CreatePostDto) {}

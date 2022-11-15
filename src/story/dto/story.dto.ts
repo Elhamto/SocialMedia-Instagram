@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
 import {
   IsArray,
   IsDate,
@@ -20,8 +21,10 @@ export class CreateStoryDto {
 
   @IsArray()
   @IsOptional()
-  likes: any;
+  likes?: any;
 
   // @IsString()
   // reply: string;
 }
+
+export class UpdateStoryDto extends PartialType(CreateStoryDto) {}

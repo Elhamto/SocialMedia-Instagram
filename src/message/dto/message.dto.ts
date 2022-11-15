@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/mapped-types';
 import {
   IsBoolean,
   IsDate,
@@ -23,5 +24,7 @@ export class CreateMessageDto {
 
   @IsBoolean()
   @IsOptional()
-  liked: boolean;
+  liked?: boolean;
 }
+
+export class UpdateMessageDto extends PartialType(CreateMessageDto) {}

@@ -7,12 +7,14 @@ import {
   IsString,
   IsUrl,
 } from 'class-validator';
+import { CreateUserDto } from 'src/user/dto/user.dto';
 
 export class CreatePostDto {
   @IsNotEmpty()
-  owner: CreatePostDto;
+  owner: CreateUserDto;
 
   @IsUrl() // @IsString()
+  @IsString()
   @IsNotEmpty()
   content: string;
 
@@ -25,7 +27,7 @@ export class CreatePostDto {
 
   @IsArray()
   @IsOptional()
-  likes?: CreatePostDto;
+  likes?: CreateUserDto;
 
   @IsNumber()
   @IsOptional()

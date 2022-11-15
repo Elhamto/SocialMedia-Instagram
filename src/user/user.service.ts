@@ -33,6 +33,10 @@ export class UserService {
     return this.userModel.findById(id).exec();
   }
 
+  update(id: number, updateUserDto: UpdateUserDto) {
+    return `This action updates a #${id} user`;
+  }
+
   addFollower(id: number, updateUserDto: UpdateUserDto) {
     this.userModel.updateOne(
       {

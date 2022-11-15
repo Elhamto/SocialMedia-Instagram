@@ -23,8 +23,8 @@ export class User {
   @Prop()
   age: number;
 
-  @Prop({ default: false })
-  visiblity: boolean;
+  @Prop({ type: String, enum: ['public', 'private'], default: 'public' })
+  visiblity: string;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
   followers: User[];

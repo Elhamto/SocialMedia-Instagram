@@ -17,15 +17,7 @@ export class UserService {
 
   findAll(): Promise<User[]> {
     return this.userModel
-      .find(
-        {
-          username: 'elham',
-        },
-        {
-          age: 1,
-          phoneNumber: 1,
-        },
-      )
+      .find() // .find({ username: 'elham' }, { age: 1, phoneNumber: 1 })
       .exec();
   }
 
@@ -38,17 +30,10 @@ export class UserService {
   }
 
   addFollower(id: number, updateUserDto: UpdateUserDto) {
-    this.userModel.updateOne(
-      {
-        username: updateUserDto.username,
-      },
-      {
-        $push: {
-          followers: '2121',
-        },
-      },
+    return this.userModel.updateOne(
+      { username: updateUserDto.username },
+      { $push: { followers: id } },
     );
-    return `This action updates a #${id} user`;
   }
 
   remove(id: number) {

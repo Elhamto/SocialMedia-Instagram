@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import {
   IsArray,
   IsBoolean,
+  IsEnum,
   IsEmail,
   IsNotEmpty,
   IsNumber,
@@ -37,8 +38,13 @@ export class CreateUserDto {
   @IsOptional()
   age?: number;
 
-  @IsBoolean()
-  visiblity: boolean;
+  // @IsBoolean()
+  // @IsOptional()
+  // visiblity?: boolean;
+
+  @IsString()
+  @IsOptional()
+  visiblity?: string;
 
   @IsArray()
   @IsOptional()

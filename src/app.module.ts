@@ -7,6 +7,7 @@ import { PostModule } from './post/post.module';
 import { StoryModule } from './story/story.module';
 import { MessageModule } from './message/message.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ConfigModule } from '@nestjs/config';
     PostModule,
     StoryModule,
     MessageModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

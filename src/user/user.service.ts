@@ -21,8 +21,17 @@ export class UserService {
       .exec();
   }
 
-  findOne(id: number) {
-    return this.userModel.findById(id).exec();
+  // findOne(id: string): Promise<User | undefined> {
+  //   return this.userModel.findById(id).exec();
+  // }
+
+  // async findOne(username: string): Promise<User | undefined> {
+  //   return this.userModel.find(user => user.username === username);
+  // }
+
+  async findOne(username: string): Promise<User | undefined> {
+    const user = await this.userModel.findOne({ username: username });
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

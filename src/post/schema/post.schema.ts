@@ -19,7 +19,11 @@ export class Post {
     raw({
       writer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, //comment az kie
       commentContent: { type: String },
-      refId: { type: mongoose.Schema.Types.ObjectId }, //'comments.id' //commentId
+      // refId: { type: mongoose.Schema.Types.ObjectId,  ref: 'Comment' }, //'comments.id' //commentId
+      replies: {
+        writer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        commentContent: { type: String },
+      },
       likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // ki like karde
       date: Date,
     }),

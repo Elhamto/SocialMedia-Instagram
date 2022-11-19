@@ -15,11 +15,11 @@ export class UserService {
     return createdUser.save();
   }
 
-  findAll(): Promise<User[]> {
-    return this.userModel
-      .find() // .find({ username: 'elham' }, { age: 1, phoneNumber: 1 })
-      .exec();
-  }
+  // findAll(): Promise<User[]> {
+  //   return this.userModel
+  //     .find() // .find({ username: 'elham' }, { age: 1, phoneNumber: 1 })
+  //     .exec();
+  // }
 
   // findOne(id: string): Promise<User | undefined> {
   //   return this.userModel.findById(id).exec();
@@ -29,23 +29,23 @@ export class UserService {
   //   return this.userModel.find(user => user.username === username);
   // }
 
-  async findOne(username: string): Promise<User | undefined> {
+  async findOne(username: string): Promise<any> {
     const user = await this.userModel.findOne({ username: username });
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+  // update(id: number, updateUserDto: UpdateUserDto) {
+  //   return `This action updates a #${id} user`;
+  // }
 
-  addFollower(id: number, updateUserDto: UpdateUserDto) {
-    return this.userModel.updateOne(
-      { username: updateUserDto.username },
-      { $push: { followers: id } },
-    );
-  }
+  // addFollower(id: number, updateUserDto: UpdateUserDto) {
+  //   return this.userModel.updateOne(
+  //     { username: updateUserDto.username },
+  //     { $push: { followers: id } },
+  //   );
+  // }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  // remove(id: number) {
+  //   return `This action removes a #${id} user`;
+  // }
 }

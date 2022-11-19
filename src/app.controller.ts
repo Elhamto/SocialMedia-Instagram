@@ -11,25 +11,16 @@ export class AppController {
     private authService: AuthService,
   ) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req) {
     return this.authService.login(req.user);
   }
-  // async login(@Request() req): Promise<User | { accessToken: string }> {
-  //   // return request.user;
-  //   return await this.authService.login(req.user);
-  // }
 
   @UseGuards(JwtAuthGuard)
   @Get('secret')
   getProfile(@Request() req) {
-    // return req.user;
-    return `hello ${JSON.stringify(req.user)}`;
+    return req.user;
+    // return `hello ${JSON.stringify(req.user)}`;
   }
 }

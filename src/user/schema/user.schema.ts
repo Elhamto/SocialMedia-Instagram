@@ -1,5 +1,6 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
+import { Post } from 'src/post/schema/post.schema';
 
 export type UserDocument = mongoose.HydratedDocument<User>;
 
@@ -15,21 +16,33 @@ export class User {
   fullName: string;
 
   @Prop()
+  photo: string;
+
+  @Prop()
   email: string;
 
   @Prop()
   phoneNumber: string;
 
   @Prop()
+  age: number;
+
+  @Prop()
   gender: string;
 
   @Prop()
-  age: number;
+  bio: string;
 
   @Prop({ type: String, enum: ['public', 'private'], default: 'public' })
   visiblity: string;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
+  @Prop(
+    raw({
+      userId: { type: mongoose.Schema.Types.ObjectId },
+      status: { type: String, enum: ['pending', 'accepted'] },
+    }),
+  )
+  // @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
   followers: User[];
 
   @Prop(
@@ -38,8 +51,8 @@ export class User {
       status: { type: String, enum: ['pending', 'accepted'] },
     }),
   )
-  followings: Array<any>;
-  // followings: Array<??>;
+  followings: User[];
+  // followings: Array<any>;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
   closeUsers: User[];
@@ -49,6 +62,9 @@ export class User {
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
   blockUsers: User[];
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }], ref: 'Post' })
+  posts: Post[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

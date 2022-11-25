@@ -9,21 +9,44 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 
 export class CreateUserDto {
   //   @Validate(IsUnique, { message: 'Isnot unique name' })
   @IsNotEmpty()
   @IsString()
+  @MinLength(3)
   username: string;
 
   @IsNotEmpty()
   @IsString()
+  @MinLength(4)
   password: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  age: number;
+}
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {
+  @IsString()
+  @MaxLength(30)
+  @IsOptional()
+  gender?: string;
+
+  @IsString()
+  @MaxLength(150)
+  @IsOptional()
+  bio?: string;
 
   @IsString()
   @IsOptional()
   fullName?: string;
+
+  @IsString()
+  @IsOptional()
+  photo?: string;
 
   @IsEmail()
   @IsOptional()
@@ -32,15 +55,6 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   phoneNumber?: string;
-
-  @IsString()
-  @MaxLength(30)
-  @IsOptional()
-  gender?: string;
-
-  @IsNumber()
-  @IsOptional()
-  age?: number;
 
   // @IsBoolean()
   // @IsOptional()
@@ -70,5 +84,3 @@ export class CreateUserDto {
   @IsOptional()
   blockUsers?: CreateUserDto[];
 }
-
-export class UpdateUserDto extends PartialType(CreateUserDto) {}

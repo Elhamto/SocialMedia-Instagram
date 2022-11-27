@@ -21,21 +21,17 @@ export class UserService {
 
   async getUserData(username: string, req?): Promise<User> {
     try {
-      const accessToken = req.headers.authorization.slice(7);
-      // access token bayad decode beshe
-      // const decodedJwtAccessToken = this.jwtService.decode(accessToken);
       const user = await this.userModel.findOne({ username: username });
       if (user.visiblity === 'public') {
         return user;
       } else {
         const isFollowing = await this.userModel.findOne({
-          username: accessToken.username,
+          username: req.user.username,
           followings: user, //{ userId: user._id },
         });
-        if (isFollowing !== null || accessToken.username === username) {
+        if (isFollowing !== null || req.user.username === username) {
           return user;
         }
-        console.log('need accessToken');
       }
     } catch (error) {
       return error.message;
@@ -59,6 +55,70 @@ export class UserService {
         //changePassword
       },
     );
+  }
+
+  async follow(followName: string, username: string) {
+    try {
+      const wantedFollow = await this.userModel.findOne({
+        username: followName,
+      });
+      const me = await this.userModel.findOne({ username: username });
+      if (wantedFollow.username !== username) {
+        if (wantedFollow.visiblity === 'public') {
+          //transaction bayad beshe
+          await this.userModel.updateOne(
+            { username: wantedFollow.username },
+            {
+              $push: {
+                followers: {
+                  userId: wantedFollow,
+                  status: 'accepted',
+                },
+              },
+            },
+          );
+          return await this.userModel.updateOne(
+            { username: username },
+            {
+              $push: {
+                followings: {
+                  userId: wantedFollow,
+                  status: 'accepted',
+                },
+              },
+            },
+          );
+        }
+        // if (wantedFollow.visiblity === 'private') {}
+        else {
+          await this.userModel.updateOne(
+            { username: wantedFollow.username },
+            {
+              $push: {
+                followers: {
+                  userId: me,
+                  status: 'pending',
+                },
+              },
+            },
+          );
+          return await this.userModel.updateOne(
+            { username: username },
+            {
+              $push: {
+                followings: {
+                  userId: wantedFollow,
+                  status: 'pending',
+                },
+              },
+            },
+          );
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
   }
 
   async addFollower(follow: string, username: string) {
@@ -105,103 +165,164 @@ export class UserService {
     }
   }
 
-  async follow(followName: string, username: string) {
+  // async showFollowRequests(username) {}
+
+  async manageFollowRequests(username, body) {
     try {
-      const wantedFollow = await this.userModel.findOne({
-        username: followName,
-      });
-      const me = await this.userModel.findOne({ username: username });
-      if (wantedFollow.username !== username) {
-        if (wantedFollow.visiblity === 'public') {
-          //transaction bayad beshe
-          await this.userModel.updateOne(
-            { username: wantedFollow.username },
-            { $push: { followers: wantedFollow } },
-          );
-          return await this.userModel.updateOne(
-            { username: username },
+      const follower = await this.userModel.findOne({ username: body.follow });
+      if (body.res == 'yes') {
+        console.log(
+          follower._id,
+          '*******************************',
+          await this.userModel.aggregate([
             {
-              $push: {
-                followings: {
-                  userId: wantedFollow,
-                  status: 'accepted',
+              $lookup: {
+                from: 'UserFollow',
+                let: {
+                  id: '$_id',
                 },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ['$$id', '$follower._id'],
+                      },
+                      status: 'pending',
+                    },
+                  },
+                ],
+                as: 'followers',
               },
             },
-          );
-        }
-        // if (wantedFollow.visiblity === 'private') {}
-        else {
-          await this.userModel.updateOne(
-            { username: wantedFollow.username },
-            {
-              $push: {
-                followers: {
-                  userId: me.username,
-                  status: 'pending',
-                },
-              },
-            },
-          );
-          return await this.userModel.updateOne(
-            { username: username },
-            {
-              $push: {
-                followings: {
-                  userId: wantedFollow,
-                  status: 'pending',
-                },
-              },
-            },
-          );
-        }
+          ]),
+        );
+
+        // return await this.userModel.findOneAndUpdate(
+        //   { username: username },
+        //   {
+        //     $set: {
+        //       [`followers.$[outer].status`]: 'accepted',
+        //     },
+        //   },
+        //   {
+        //     arrayFilters: [{ 'outer.userId': follower._id }],
+        //   },
+        //   function (err, response) {
+        //     if (err) console.log(err);
+        //     console.log(response);
+        //   },
+        // );
+
+        // aggregate([
+        //   { $match: { username: username, followers: { userId: follower } } },
+        //   { $addFields: { followers: ['$status', 'accepted'] } },
+        // ]);
+
+        // updateOne(
+        //   { username: username, followers: { userId: follower } },
+        //   { $set: { 'followers.$.status': 'accepted' } },
+        //   {
+        //     upsert: true,
+        //     runValidators: true,
+        //   },
+        // );
+
+        // findOneAndUpdate(
+        //   { username: username },
+        //   { $set: { 'followers.$[el].status': 'accepted' } },
+        //   {
+        //     arrayFilters: [{ 'el.userId': follower }],
+        //     new: true,
+        //   },
+        // );
+        // updateOne(
+        //   { username: username, followers: follower },
+        //   { $set: {'followers.$.status': 'accepted' } },
+        // );
       }
-    } catch (error) {
-      console.log(error);
-      return error;
-    }
-  }
-
-  async followAccept(followName: string, username: string) {
-    try {
-      const wantedFollow = await this.userModel.findOne({
-        username: followName,
-      });
-      return await this.userModel.updateOne(
-        { username: username, followers: wantedFollow },
-        {
-          followers: {
-            status: 'accepted',
-          },
-        },
+      return this.userModel.updateOne(
+        { username: username, followers: follower },
+        { $pull: { followers: follower } },
       );
     } catch (error) {
-      console.log(error);
-      return error;
-    }
-  }
-
-  async followReject(followName: string, username: string) {
-    try {
-      const wantedFollow = await this.userModel.findOne({
-        username: followName,
-      });
-      return await this.userModel.updateOne(
-        { username: username, followers: wantedFollow },
-        {
-          $pop: {
-            followers: wantedFollow,
-          },
-        },
-      );
-    } catch (error) {
-      console.log(error);
-      return error;
+      return error.message;
     }
   }
 
   remove(username: string) {
     return this.userModel.remove({ username: username }).exec();
+  }
+
+  async blockUser(username, body) {
+    try {
+      const blocked = await this.userModel.findOne({ username: body.block });
+      return this.userModel.updateOne(
+        { username: username },
+        { $push: { blockUsers: blocked } },
+      );
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  async unblockUser(username, body) {
+    try {
+      const blocked = await this.userModel.findOne({ username: body.block });
+      return this.userModel.updateOne(
+        { username: username },
+        { $pull: { blockUsers: blocked } },
+      );
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  async addCloseUser(username, body) {
+    try {
+      const close = await this.userModel.findOne({ username: body.block });
+      return this.userModel.updateOne(
+        { username: username },
+        { $push: { closeUsers: close } },
+      );
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  async delCloseUser(username, body) {
+    try {
+      const close = await this.userModel.findOne({ username: body.block });
+      return this.userModel.updateOne(
+        { username: username },
+        { $pull: { closeUsers: close } },
+      );
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  async hideUser(username, body) {
+    try {
+      const hidden = await this.userModel.findOne({ username: body.block });
+      return this.userModel.updateOne(
+        { username: username },
+        { $push: { hideUsers: hidden } },
+      );
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  async unhideUser(username, body) {
+    try {
+      const hidden = await this.userModel.findOne({ username: body.block });
+      return this.userModel.updateOne(
+        { username: username },
+        { $pull: { hideUsers: hidden } },
+      );
+    } catch (error) {
+      return error.message;
+    }
   }
 
   // async userCreation(userCreateData: createUserDto): Promise<User> {

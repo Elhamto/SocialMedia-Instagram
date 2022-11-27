@@ -1,12 +1,12 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { User } from 'src/user/schema/user.schema';
-
+// import { Request } from '@nestjs/common';
 export type PostDocument = mongoose.HydratedDocument<Post>;
 
 @Schema()
 export class Post {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' }) //, default:@Request() req.user.userId
   owner: User;
 
   @Prop()

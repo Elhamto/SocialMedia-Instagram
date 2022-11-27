@@ -6,42 +6,60 @@ import {
   Patch,
   Param,
   Delete,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
-import { ObjectId } from 'mongoose';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Post() //create post
-  create(@Body() createPostDto: CreatePostDto) {
+  create(@Body() createPostDto, @Request() req) {
+    createPostDto.owner = req.user.userId;
+    createPostDto.comments.writer = req.user.userId;
     return this.postService.create(createPostDto);
   }
 
-  @Get() //Explorer behtare ye filteri barash bezaram
-  findAllForExplorer() {
-    return this.postService.findAllForExplorer();
+  @Delete(':id')
+  remove(@Param('id') id: string, @Request() req) {
+    return this.postService.remove(id, req.user);
   }
 
-  @Get(':id') //mikham begam id nade va login base bashe
-  findAllForOneUser(@Param('id') id: ObjectId) {
-    return this.postService.findAllForOneUser(id);
+  @Get() //Explorer behtare ye filteri barash bezaram // ye limiti
+  getAllForExplorer() {
+    return this.postService.getAllForExplorer();
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.postService.findOne(+id);
-  // }
+  @Get(':username')
+  getAllForOneUser(@Param('username') username: string, @Request() req) {
+    return this.postService.getAllForUser(username, req.user);
+  }
+
+  @Get('p/:id')
+  getPostByUrl(@Param('id') id: string) {
+    return this.postService.getPostByUrl(id);
+  }
 
   @Patch(':id') // id ye post ke bayad har user ghablesh login shode bashe
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(id, updatePostDto);
+  update(
+    @Param('id') id: string,
+    @Body() updatePostDto: UpdatePostDto,
+    @Request() req,
+  ) {
+    return this.postService.update(id, updatePostDto, req.user);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postService.remove(+id);
+  @Post(':id')
+  addComment(
+    @Param('id') id: string,
+    @Body() updatePostDto: UpdatePostDto,
+    @Request() req,
+  ) {
+    return this.postService.addComment(id, updatePostDto, req.user);
   }
 }

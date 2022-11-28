@@ -37,19 +37,23 @@ export class User {
   visiblity: string;
 
   @Prop(
-    raw({
-      userId: { type: mongoose.Schema.Types.ObjectId },
-      status: { type: String, enum: ['pending', 'accepted'] },
-    }),
+    raw([
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId },
+        status: { type: String, enum: ['pending', 'accepted'] },
+      },
+    ]),
   )
-  // @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId }] })
+  // @Prop({ type: Array })
   followers: User[];
 
   @Prop(
-    raw({
-      userId: { type: mongoose.Schema.Types.ObjectId },
-      status: { type: String, enum: ['pending', 'accepted'] },
-    }),
+    raw([
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId },
+        status: { type: String, enum: ['pending', 'accepted'] },
+      },
+    ]),
   )
   followings: User[];
   // followings: Array<any>;

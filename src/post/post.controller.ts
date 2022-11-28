@@ -18,6 +18,12 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
+//   @Post('upload')
+//   @UseInterceptors(FileInterceptor('file'))
+//   uploadFile(@UploadedFile() file: Express.Multer.File) {
+//   console.log(file);
+// }
+
   @Post() //create post
   create(@Body() createPostDto, @Request() req) {
     createPostDto.owner = req.user.userId;
@@ -46,7 +52,7 @@ export class PostController {
   }
 
   @Patch(':id') // id ye post ke bayad har user ghablesh login shode bashe
-  update(
+  update( // like post
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
     @Request() req,
@@ -62,4 +68,6 @@ export class PostController {
   ) {
     return this.postService.addComment(id, updatePostDto, req.user);
   }
+
+  // likeComment
 }

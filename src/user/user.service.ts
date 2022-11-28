@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
@@ -15,33 +19,9 @@ export class UserService {
     return createdUser.save();
   }
 
-  async getUser(username: string): Promise<User> {
-    return await this.userModel.findOne({ username: username });
-  }
-
-  async getUserData(username: string, req?): Promise<User> {
-    try {
-      const user = await this.userModel.findOne({ username: username });
-      if (user.visiblity === 'public') {
-        return user;
-      } else {
-        const isFollowing = await this.userModel.findOne({
-          username: req.user.username,
-          followings: user, //{ userId: user._id },
-        });
-        if (isFollowing !== null || req.user.username === username) {
-          return user;
-        }
-      }
-    } catch (error) {
-      return error.message;
-    }
-  }
-
-  editProfile(id, updateUserDto: UpdateUserDto) {
-    console.log(id);
+  editProfile(user, updateUserDto: UpdateUserDto) {
     return this.userModel.updateOne(
-      { _id: id.id },
+      { _id: user.userId },
       {
         username: updateUserDto.username,
         fullname: updateUserDto.fullName,
@@ -57,17 +37,45 @@ export class UserService {
     );
   }
 
-  async follow(followName: string, username: string) {
+  async getUser(username: string): Promise<User> {
+    return await this.userModel.findOne({ username: username });
+  }
+
+  async getUserData(username: string, _user?): Promise<User | any> {
+    try {
+      const user = await this.userModel.findOne({ username: username });
+      if (user.visiblity === 'public') {
+        return user;
+      } else {
+        const isFollowing = await this.userModel.findOne({
+          username: user.username,
+          followings: user, //{ userId: _user._id },
+        });
+        if (isFollowing !== null || _user.username === username) {
+          return user;
+        }
+      }
+      return ForbiddenException;
+    } catch (error) {
+      return error.message;
+    }
+  }
+
+  getUserFollowers(user) {
+    return this.userModel.findById(user.userId).select('followers'); //OR
+    // return this.userModel.find({ username: user.username }, { followers: 1 });
+  }
+
+  async follow(follow, user) {
     try {
       const wantedFollow = await this.userModel.findOne({
-        username: followName,
+        username: follow.name,
       });
-      const me = await this.userModel.findOne({ username: username });
-      if (wantedFollow.username !== username) {
+      if (follow.name !== user.username) {
         if (wantedFollow.visiblity === 'public') {
           //transaction bayad beshe
           await this.userModel.updateOne(
-            { username: wantedFollow.username },
+            { username: follow.name },
             {
               $push: {
                 followers: {
@@ -78,7 +86,7 @@ export class UserService {
             },
           );
           return await this.userModel.updateOne(
-            { username: username },
+            { username: user.username },
             {
               $push: {
                 followings: {
@@ -92,18 +100,18 @@ export class UserService {
         // if (wantedFollow.visiblity === 'private') {}
         else {
           await this.userModel.updateOne(
-            { username: wantedFollow.username },
+            { username: follow.name },
             {
               $push: {
                 followers: {
-                  userId: me,
+                  userId: user.userId, // await this.userModel.findOne({ username: user.username })
                   status: 'pending',
                 },
               },
             },
           );
           return await this.userModel.updateOne(
-            { username: username },
+            { username: user.username },
             {
               $push: {
                 followings: {
@@ -118,6 +126,49 @@ export class UserService {
     } catch (error) {
       console.log(error);
       return error;
+    }
+  }
+
+  async unfollow(follow, user) {
+    return this.userModel.updateOne(
+      { username: user.username },
+      {
+        $pull: {
+          followings: await this.userModel.findOne({ username: follow.name }),
+        },
+      },
+    );
+  }
+
+  // async showFollowRequests(username) {}
+
+  async manageFollowRequests(follow, me) {
+    try {
+      const follower = await this.userModel.findOne({ username: follow.name });
+      if (follow.res == 'yes') {
+        await this.userModel.updateOne(
+          { username: follower.username },
+          { $set: { 'followings.$[elem].status': 'accepted' } },
+          { arrayFilters: [{ 'elem.userId': me.userId }] },
+        );
+        return this.userModel.updateOne(
+          { username: me.username },
+          { $set: { 'followers.$[elem].status': 'accepted' } },
+          { arrayFilters: [{ 'elem.userId': follower._id }] },
+        );
+      }
+      await this.userModel.updateOne(
+        //unfollow ham mikone
+        { username: follower.username },
+        { $pull: { followings: { userId: me.userId } } },
+      );
+      return this.userModel.updateOne(
+        //unfollow ham mikone
+        { username: me.username, followers: follower },
+        { $pull: { followers: follower } },
+      );
+    } catch (error) {
+      return error.message;
     }
   }
 
@@ -137,7 +188,6 @@ export class UserService {
       return NotFoundException;
     }
   }
-
   async addFollowing(followName: string, username: string) {
     try {
       const wantedFollower = await this.userModel.findOne({
@@ -165,97 +215,22 @@ export class UserService {
     }
   }
 
-  // async showFollowRequests(username) {}
+  remove(user) {
+    return this.userModel.remove({ username: user.username }).exec(); //OR
+    // return this.userModel.findByIdAndRemove(user.userId).exec();
+  }
 
-  async manageFollowRequests(username, body) {
+  async blockUser(blockName: string, username: string) {
     try {
-      const follower = await this.userModel.findOne({ username: body.follow });
-      if (body.res == 'yes') {
-        console.log(
-          follower._id,
-          '*******************************',
-          await this.userModel.aggregate([
-            {
-              $lookup: {
-                from: 'UserFollow',
-                let: {
-                  id: '$_id',
-                },
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: {
-                        $eq: ['$$id', '$follower._id'],
-                      },
-                      status: 'pending',
-                    },
-                  },
-                ],
-                as: 'followers',
-              },
-            },
-          ]),
-        );
-
-        // return await this.userModel.findOneAndUpdate(
-        //   { username: username },
-        //   {
-        //     $set: {
-        //       [`followers.$[outer].status`]: 'accepted',
-        //     },
-        //   },
-        //   {
-        //     arrayFilters: [{ 'outer.userId': follower._id }],
-        //   },
-        //   function (err, response) {
-        //     if (err) console.log(err);
-        //     console.log(response);
-        //   },
-        // );
-
-        // aggregate([
-        //   { $match: { username: username, followers: { userId: follower } } },
-        //   { $addFields: { followers: ['$status', 'accepted'] } },
-        // ]);
-
-        // updateOne(
-        //   { username: username, followers: { userId: follower } },
-        //   { $set: { 'followers.$.status': 'accepted' } },
-        //   {
-        //     upsert: true,
-        //     runValidators: true,
-        //   },
-        // );
-
-        // findOneAndUpdate(
-        //   { username: username },
-        //   { $set: { 'followers.$[el].status': 'accepted' } },
-        //   {
-        //     arrayFilters: [{ 'el.userId': follower }],
-        //     new: true,
-        //   },
-        // );
-        // updateOne(
-        //   { username: username, followers: follower },
-        //   { $set: {'followers.$.status': 'accepted' } },
-        // );
-      }
-      return this.userModel.updateOne(
-        { username: username, followers: follower },
-        { $pull: { followers: follower } },
+      await this.userModel.updateOne( // unfollow
+        { username: username },
+        {
+          $pull: {
+            followings: await this.userModel.findOne({ username: blockName }),
+          },
+        },
       );
-    } catch (error) {
-      return error.message;
-    }
-  }
-
-  remove(username: string) {
-    return this.userModel.remove({ username: username }).exec();
-  }
-
-  async blockUser(username, body) {
-    try {
-      const blocked = await this.userModel.findOne({ username: body.block });
+      const blocked = await this.userModel.findOne({ username: blockName });
       return this.userModel.updateOne(
         { username: username },
         { $push: { blockUsers: blocked } },
@@ -265,9 +240,9 @@ export class UserService {
     }
   }
 
-  async unblockUser(username, body) {
+  async unblockUser(blockName: string, username: string) {
     try {
-      const blocked = await this.userModel.findOne({ username: body.block });
+      const blocked = await this.userModel.findOne({ username: blockName });
       return this.userModel.updateOne(
         { username: username },
         { $pull: { blockUsers: blocked } },
@@ -277,33 +252,37 @@ export class UserService {
     }
   }
 
-  async addCloseUser(username, body) {
+  async addCloseFriend(closeFriendName: string, username: string) {
     try {
-      const close = await this.userModel.findOne({ username: body.block });
+      const closeFriend = await this.userModel.findOne({
+        username: closeFriendName,
+      });
       return this.userModel.updateOne(
         { username: username },
-        { $push: { closeUsers: close } },
+        { $push: { closeUsers: closeFriend } },
       );
     } catch (error) {
       return error.message;
     }
   }
 
-  async delCloseUser(username, body) {
+  async delCloseFriend(closeFriendName: string, username: string) {
     try {
-      const close = await this.userModel.findOne({ username: body.block });
+      const closeFriend = await this.userModel.findOne({
+        username: closeFriendName,
+      });
       return this.userModel.updateOne(
         { username: username },
-        { $pull: { closeUsers: close } },
+        { $pull: { closeUsers: closeFriend } },
       );
     } catch (error) {
       return error.message;
     }
   }
 
-  async hideUser(username, body) {
+  async hideUser(hiddenName: string, username: string) {
     try {
-      const hidden = await this.userModel.findOne({ username: body.block });
+      const hidden = await this.userModel.findOne({ username: hiddenName });
       return this.userModel.updateOne(
         { username: username },
         { $push: { hideUsers: hidden } },
@@ -313,9 +292,9 @@ export class UserService {
     }
   }
 
-  async unhideUser(username, body) {
+  async unhideUser(hiddenName: string, username: string) {
     try {
-      const hidden = await this.userModel.findOne({ username: body.block });
+      const hidden = await this.userModel.findOne({ username: hiddenName });
       return this.userModel.updateOne(
         { username: username },
         { $pull: { hideUsers: hidden } },
@@ -338,10 +317,6 @@ export class UserService {
   //     .exec();
   // }
 
-  // findOne(id: string): Promise<User | undefined> {
-  //   return this.userModel.findById(id).exec();
-  // }
-
   // async findOne(username: string): Promise<User | undefined> {
   //   return this.userModel.find(user => user.username === username);
   // }
@@ -349,13 +324,5 @@ export class UserService {
   // async findOne(username: string): Promise<any> {
   //   const user = await this.userModel.findOne({ username: username });
   //   return user;
-  // }
-
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
   // }
 }

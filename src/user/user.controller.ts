@@ -19,59 +19,71 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Patch('edit')
-  editProfile(@Body() id, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.editProfile(id, updateUserDto);
+  editProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.editProfile(req.user, updateUserDto);
+  }
+
+  @Get('follow')
+  getUserFollowers(@Request() req) {
+    //send reguest
+    return this.userService.getUserFollowers(req.user);
+  }
+
+  @Post('follow')
+  followUser(@Body() body, @Request() req) {
+    //send reguest
+    return this.userService.follow(body, req.user);
+  }
+
+  @Delete('follow')
+  unfollowUser(@Body() body, @Request() req) {
+    //send reguest
+    return this.userService.unfollow(body, req.user);
+  }
+
+  @Patch('follow')
+  manageFollowRequests(@Body() body, @Request() req) {
+    return this.userService.manageFollowRequests(body, req.user);
   }
 
   @Get(':username')
   getUserData(@Param('username') username: string, @Request() req?) {
-    return this.userService.getUserData(username, req);
+    return this.userService.getUserData(username, req.user);
   }
 
-  @Delete(':username')
-  remove(@Param('username') username: string) {
-    return this.userService.remove(username);
-  }
-
-  @Post('follow/:username')
-  followUser(@Param('username') username: string, @Body() body) {
-    //send reguest
-    return this.userService.follow(body.follow, username);
-  }
-
-  @Patch('follow/:username')
-  manageFollowRequests(@Param('username') username: string, @Body() body) {
-    return this.userService.manageFollowRequests(username, body);
+  @Delete()
+  remove(@Request() req) {
+    return this.userService.remove(req.user);
   }
 
   @Post('block/:username')
-  blockUser(@Param('username') username: string, @Body() body) {
-    return this.userService.blockUser(username, body);
+  blockUser(@Param('username') username: string, @Request() req) {
+    return this.userService.blockUser(username, req.user.username);
   }
 
   @Delete('block/:username')
-  unblockUser(@Param('username') username: string, @Body() body) {
-    return this.userService.unblockUser(username, body);
+  unblockUser(@Param('username') username: string, @Request() req) {
+    return this.userService.unblockUser(username, req.user.username);
   }
 
   @Post('close/:username')
-  addCloseUser(@Param('username') username: string, @Body() body) {
-    return this.userService.addCloseUser(username, body);
+  addCloseUser(@Param('username') username: string, @Request() req) {
+    return this.userService.addCloseFriend(username, req.user.username);
   }
 
   @Delete('block/:username')
-  delCloseUser(@Param('username') username: string, @Body() body) {
-    return this.userService.delCloseUser(username, body);
+  delCloseUser(@Param('username') username: string, @Request() req) {
+    return this.userService.delCloseFriend(username, req.user.username);
   }
 
   @Post('hide/:username')
-  hideUser(@Param('username') username: string, @Body() body) {
-    return this.userService.hideUser(username, body);
+  hideUser(@Param('username') username: string, @Request() req) {
+    return this.userService.hideUser(username, req.user.username);
   }
 
   @Delete('block/:username')
-  unhideUser(@Param('username') username: string, @Body() body) {
-    return this.userService.unhideUser(username, body);
+  unhideUser(@Param('username') username: string, @Request() req) {
+    return this.userService.unhideUser(username, req.user.username);
   }
 
   // @Get('followRequests/:username')

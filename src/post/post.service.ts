@@ -56,12 +56,15 @@ export class PostService {
           caption: updatePostDto.caption,
           content: updatePostDto.content,
           comments: updatePostDto.comments, // writer comment bayad moshakhas beshe
-          likes: updatePostDto.likes, // like khodamo
+          likes: updatePostDto.likes, // like khodamo // mitunim like kardan ro joda konim
         },
       );
     }
   }
 
+  likePost(postId, user) {
+    this.postModel.findByIdAndUpdate(postId, { $push: { likes: user.userId } });
+  }
   addComment(postId: string, updatePostDto: UpdatePostDto, req) {
     // const user = await this.userService.getUserData(req.username);
     return this.postModel.updateOne(

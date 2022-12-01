@@ -1,19 +1,21 @@
-FROM node:18-alpine
+# Base image
+FROM node:18
 
 # Create app directory
 WORKDIR /usr/src/app
 
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
-# Copying this first prevents re-running npm install on every code change.
-COPY --chown=node:node package*.json ./
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+COPY package*.json ./
 
-# Install app dependencies using the `npm ci` command instead of `npm install`
-# RUN npm ci
-RUN npm install --silent
+# Install app dependencies
+RUN npm install
 
 # Bundle app source
-COPY --chown=node:node . .
+COPY . .
 
-# Use the node user from the image (instead of the root user)
-USER node
+# Creates a "dist" folder with the production build
+RUN npm run build
+
+# Start the server using the production build
+CMD [ "node", "dist/main.js" ]
+
